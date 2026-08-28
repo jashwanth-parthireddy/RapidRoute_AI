@@ -1,0 +1,96 @@
+version: "3.9"
+
+services:
+  # ─── PostgreSQL ───────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: rapidroute_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: rapidroute_db
+      POSTGRES_USER: rapidroute
+      POSTGRES_PASSWORD: rapidroute123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/migrations:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rapidroute -d rapidroute_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── Redis ────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: rapidroute_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── AI Service (Python / FastAPI) ────────
+  ai-service:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    container_name: rapidroute_ai
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - AI_HOST=0.0.0.0
+      - AI_PORT=8000
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # ─── Backend (Node.js / Express) ──────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: rapidroute_backend
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://rapidroute:rapidroute123@postgres:5432/rapidroute_db
+      - REDIS_URL=redis://redis:6379
+      - AI_SERVICE_URL=http://ai-service:8000
+      - JWT_SECRET=change-this-in-production-super-secret-key
+      - JWT_REFRESH_SECRET=change-this-refresh-secret-in-production
+      - PORT=4000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      ai-service:
+        condition: service_started
+
+  # ─── Frontend (React / Nginx) ─────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: rapidroute_frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  redis_data:
