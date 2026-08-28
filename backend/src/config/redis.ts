@@ -7,11 +7,29 @@ let isConnected = false;
 export async function getRedis(): Promise<RedisClientType | null> {
   if (redisClient && isConnected) return redisClient;
 
+  // Skip Redis entirely if no URL configured or already failed
+  if (!config.redis.url || config.redis.url === '') return null;
+
   try {
-    redisClient = createClient({ url: config.redis.url }) as RedisClientType;
+    redisClient = createClient({
+      url: config.redis.url,
+      socket: {
+        reconnectStrategy: (retries: number) => {
+          if (retries >= 3) {
+            console.warn('[Redis] Max retries reached — disabling Redis cache');
+            isConnected = false;
+            return false; // stop retrying
+          }
+          return Math.min(retries * 200, 1000);
+        },
+        connectTimeout: 2000,
+      },
+    }) as RedisClientType;
 
     redisClient.on('error', (err) => {
-      console.warn('[Redis] Connection error (non-fatal):', err.message);
+      if (!err.message?.includes('ECONNREFUSED') || isConnected) {
+        console.warn('[Redis] Connection error (non-fatal):', err.message);
+      }
       isConnected = false;
     });
 
@@ -24,7 +42,7 @@ export async function getRedis(): Promise<RedisClientType | null> {
     isConnected = true;
     return redisClient;
   } catch (err) {
-    console.warn('[Redis] Could not connect — running without cache:', (err as Error).message);
+    console.warn('[Redis] Unavailable — running without cache');
     return null;
   }
 }
