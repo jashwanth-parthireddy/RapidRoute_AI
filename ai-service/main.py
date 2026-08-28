@@ -43,8 +43,8 @@ class ETARequest(BaseModel):
     congestion_pct: Optional[float] = 40.0
 
 class JunctionItem(BaseModel):
-    id:                Optional[str] = None
-    name:              Optional[str] = None
+    id:                Optional[str]   = None
+    name:              Optional[str]   = None
     latitude:          Optional[float] = 0
     longitude:         Optional[float] = 0
     traffic_level:     Optional[str]   = 'medium'
@@ -55,8 +55,10 @@ class JunctionItem(BaseModel):
     eta_to_junction:   Optional[float] = 5
 
 class JunctionPriorityRequest(BaseModel):
-    junctions:         List[JunctionItem]
-    ambulance_eta:     Optional[float] = 10
+    junctions:          List[JunctionItem]
+    ambulance_eta:      Optional[float] = None
+    ambulance_location: Optional[LatLng] = None  # direct location → compute eta
+    hospital_location:  Optional[LatLng] = None  # accepted but unused at model level
 
 class RouteScoreRequest(BaseModel):
     normal:       dict
@@ -103,7 +105,20 @@ def eta_predict(req: ETARequest):
 def junctions_prioritize(req: JunctionPriorityRequest):
     try:
         junctions_dicts = [j.model_dump() for j in req.junctions]
-        return prioritize_junctions(junctions_dicts, req.ambulance_eta or 10)
+        # Resolve ambulance_eta: use explicit value, or compute from location
+        eta = req.ambulance_eta
+        if eta is None and req.ambulance_location:
+            from prediction.coordinator import haversine
+            if junctions_dicts:
+                # Use distance to first junction as proxy for eta
+                j0 = junctions_dicts[0]
+                dist_km = haversine(
+                    req.ambulance_location.lat, req.ambulance_location.lng,
+                    j0.get('latitude', 0), j0.get('longitude', 0)
+                )
+                eta = (dist_km / 40) * 60  # 40 km/h average
+        result = prioritize_junctions(junctions_dicts, eta or 10)
+        return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
