@@ -243,8 +243,8 @@ CREATE TRIGGER trg_ambulances_updated     BEFORE UPDATE ON ambulances     FOR EA
 CREATE TRIGGER trg_officers_updated       BEFORE UPDATE ON traffic_officers FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 CREATE TRIGGER trg_emergencies_updated    BEFORE UPDATE ON emergencies    FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
--- ── NOTIFICATIONS ─────────────────────────────────────────
-CREATE TABLE notifications (
+-- -- NOTIFICATIONS -------------------------------------------------
+CREATE TABLE IF NOT EXISTS notifications (
   id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   title       VARCHAR(200) NOT NULL,
@@ -255,12 +255,12 @@ CREATE TABLE notifications (
   created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_notifications_user    ON notifications(user_id);
-CREATE INDEX idx_notifications_read    ON notifications(user_id, is_read);
-CREATE INDEX idx_notifications_created ON notifications(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_notifications_user    ON notifications(user_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_read    ON notifications(user_id, is_read);
+CREATE INDEX IF NOT EXISTS idx_notifications_created ON notifications(created_at DESC);
 
--- ── EMERGENCY TRIP ANALYTICS ──────────────────────────────
-CREATE TABLE emergency_trip_analytics (
+-- -- EMERGENCY TRIP ANALYTICS -------------------------------------
+CREATE TABLE IF NOT EXISTS emergency_trip_analytics (
   id                   UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   emergency_id         UUID NOT NULL UNIQUE REFERENCES emergencies(id) ON DELETE CASCADE,
   normal_eta           DOUBLE PRECISION,   -- minutes without AI
