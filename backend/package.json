@@ -54,7 +54,8 @@
   "jest": {
     "preset": "ts-jest",
     "testEnvironment": "node",
-    "testPathPattern": "tests/",
+    "testMatch": ["<rootDir>/tests/**/*.test.ts"],
+    "moduleFileExtensions": ["ts", "tsx", "js"],
     "setupFiles": ["<rootDir>/tests/setup.ts"]
   }
 }

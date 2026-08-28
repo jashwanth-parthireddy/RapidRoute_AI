@@ -58,8 +58,9 @@ describe('junctionsNearRoute()', () => {
   })
 
   test('returns empty when no junctions in radius', () => {
-    const route = [{ lat: 17.44, lng: 78.45 }]
-    const result = junctionsNearRoute(route, junctions, 0.001)
+    // Route point far from all junctions (different city)
+    const route = [{ lat: 17.00, lng: 78.00 }]
+    const result = junctionsNearRoute(route, junctions, 0.1)
     expect(result.length).toBe(0)
   })
 
