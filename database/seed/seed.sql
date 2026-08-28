@@ -3,41 +3,41 @@
 -- ═══════════════════════════════════════════════════════════
 
 -- All passwords are hashed version of "Password123!"
--- bcrypt hash: $2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TiGniIMZlzSWfbNYyaUpXVWAFkBG
+-- bcrypt hash (rounds=12, verified): $2a$12$JRXlq3YHKYM/xPTtwZMEgOVEI1vn392yu2e60il88ag7scXvuMSQS
 
 -- ── USERS ─────────────────────────────────────────────────
 
 INSERT INTO users (id, name, email, phone, password_hash, role, status) VALUES
 -- Admin
-('00000000-0000-0000-0000-000000000001', 'Admin User',         'admin@rapidroute.ai',     '+91-9000000001', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TiGniIMZlzSWfbNYyaUpXVWAFkBG', 'admin',        'active'),
+('00000000-0000-0000-0000-000000000001', 'Admin User',         'admin@rapidroute.ai',     '+91-9000000001', '$2a$12$JRXlq3YHKYM/xPTtwZMEgOVEI1vn392yu2e60il88ag7scXvuMSQS', 'admin',        'active'),
 -- Control Room
-('00000000-0000-0000-0000-000000000002', 'Control Room',       'control@rapidroute.ai',   '+91-9000000002', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TiGniIMZlzSWfbNYyaUpXVWAFkBG', 'control_room', 'active'),
+('00000000-0000-0000-0000-000000000002', 'Control Room',       'control@rapidroute.ai',   '+91-9000000002', '$2a$12$JRXlq3YHKYM/xPTtwZMEgOVEI1vn392yu2e60il88ag7scXvuMSQS', 'control_room', 'active'),
 -- Drivers
-('00000000-0000-0000-0000-000000000003', 'Ravi Kumar',         'driver1@rapidroute.ai',   '+91-9100000001', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TiGniIMZlzSWfbNYyaUpXVWAFkBG', 'driver',       'active'),
-('00000000-0000-0000-0000-000000000004', 'Suresh Rao',         'driver2@rapidroute.ai',   '+91-9100000002', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TiGniIMZlzSWfbNYyaUpXVWAFkBG', 'driver',       'active'),
-('00000000-0000-0000-0000-000000000005', 'Arjun Reddy',        'driver3@rapidroute.ai',   '+91-9100000003', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TiGniIMZlzSWfbNYyaUpXVWAFkBG', 'driver',       'active'),
-('00000000-0000-0000-0000-000000000006', 'Venkat Swamy',       'driver4@rapidroute.ai',   '+91-9100000004', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TiGniIMZlzSWfbNYyaUpXVWAFkBG', 'driver',       'active'),
-('00000000-0000-0000-0000-000000000007', 'Krishna Murthy',     'driver5@rapidroute.ai',   '+91-9100000005', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TiGniIMZlzSWfbNYyaUpXVWAFkBG', 'driver',       'active'),
+('00000000-0000-0000-0000-000000000003', 'Ravi Kumar',         'driver1@rapidroute.ai',   '+91-9100000001', '$2a$12$JRXlq3YHKYM/xPTtwZMEgOVEI1vn392yu2e60il88ag7scXvuMSQS', 'driver',       'active'),
+('00000000-0000-0000-0000-000000000004', 'Suresh Rao',         'driver2@rapidroute.ai',   '+91-9100000002', '$2a$12$JRXlq3YHKYM/xPTtwZMEgOVEI1vn392yu2e60il88ag7scXvuMSQS', 'driver',       'active'),
+('00000000-0000-0000-0000-000000000005', 'Arjun Reddy',        'driver3@rapidroute.ai',   '+91-9100000003', '$2a$12$JRXlq3YHKYM/xPTtwZMEgOVEI1vn392yu2e60il88ag7scXvuMSQS', 'driver',       'active'),
+('00000000-0000-0000-0000-000000000006', 'Venkat Swamy',       'driver4@rapidroute.ai',   '+91-9100000004', '$2a$12$JRXlq3YHKYM/xPTtwZMEgOVEI1vn392yu2e60il88ag7scXvuMSQS', 'driver',       'active'),
+('00000000-0000-0000-0000-000000000007', 'Krishna Murthy',     'driver5@rapidroute.ai',   '+91-9100000005', '$2a$12$JRXlq3YHKYM/xPTtwZMEgOVEI1vn392yu2e60il88ag7scXvuMSQS', 'driver',       'active'),
 -- Hospitals
-('00000000-0000-0000-0000-000000000008', 'KIMS Hospital',      'hospital1@rapidroute.ai', '+91-4023344200', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TiGniIMZlzSWfbNYyaUpXVWAFkBG', 'hospital',     'active'),
-('00000000-0000-0000-0000-000000000009', 'Yashoda Hospital',   'hospital2@rapidroute.ai', '+91-4067191919', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TiGniIMZlzSWfbNYyaUpXVWAFkBG', 'hospital',     'active'),
-('00000000-0000-0000-0000-000000000010', 'Apollo Hospital',    'hospital3@rapidroute.ai', '+91-4023607777', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TiGniIMZlzSWfbNYyaUpXVWAFkBG', 'hospital',     'active'),
+('00000000-0000-0000-0000-000000000008', 'KIMS Hospital',      'hospital1@rapidroute.ai', '+91-4023344200', '$2a$12$JRXlq3YHKYM/xPTtwZMEgOVEI1vn392yu2e60il88ag7scXvuMSQS', 'hospital',     'active'),
+('00000000-0000-0000-0000-000000000009', 'Yashoda Hospital',   'hospital2@rapidroute.ai', '+91-4067191919', '$2a$12$JRXlq3YHKYM/xPTtwZMEgOVEI1vn392yu2e60il88ag7scXvuMSQS', 'hospital',     'active'),
+('00000000-0000-0000-0000-000000000010', 'Apollo Hospital',    'hospital3@rapidroute.ai', '+91-4023607777', '$2a$12$JRXlq3YHKYM/xPTtwZMEgOVEI1vn392yu2e60il88ag7scXvuMSQS', 'hospital',     'active'),
 -- Officers
-('00000000-0000-0000-0000-000000000011', 'Officer Prasad',     'officer1@rapidroute.ai',  '+91-9200000001', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TiGniIMZlzSWfbNYyaUpXVWAFkBG', 'officer',      'active'),
-('00000000-0000-0000-0000-000000000012', 'Officer Srinivas',   'officer2@rapidroute.ai',  '+91-9200000002', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TiGniIMZlzSWfbNYyaUpXVWAFkBG', 'officer',      'active'),
-('00000000-0000-0000-0000-000000000013', 'Officer Ramesh',     'officer3@rapidroute.ai',  '+91-9200000003', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TiGniIMZlzSWfbNYyaUpXVWAFkBG', 'officer',      'active'),
-('00000000-0000-0000-0000-000000000014', 'Officer Naresh',     'officer4@rapidroute.ai',  '+91-9200000004', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TiGniIMZlzSWfbNYyaUpXVWAFkBG', 'officer',      'active'),
-('00000000-0000-0000-0000-000000000015', 'Officer Vijay',      'officer5@rapidroute.ai',  '+91-9200000005', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TiGniIMZlzSWfbNYyaUpXVWAFkBG', 'officer',      'active'),
-('00000000-0000-0000-0000-000000000016', 'Officer Ajay',       'officer6@rapidroute.ai',  '+91-9200000006', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TiGniIMZlzSWfbNYyaUpXVWAFkBG', 'officer',      'active'),
-('00000000-0000-0000-0000-000000000017', 'Officer Raj',        'officer7@rapidroute.ai',  '+91-9200000007', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TiGniIMZlzSWfbNYyaUpXVWAFkBG', 'officer',      'active'),
-('00000000-0000-0000-0000-000000000018', 'Officer Sunil',      'officer8@rapidroute.ai',  '+91-9200000008', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TiGniIMZlzSWfbNYyaUpXVWAFkBG', 'officer',      'active'),
-('00000000-0000-0000-0000-000000000019', 'Officer Pavan',      'officer9@rapidroute.ai',  '+91-9200000009', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TiGniIMZlzSWfbNYyaUpXVWAFkBG', 'officer',      'active'),
-('00000000-0000-0000-0000-000000000020', 'Officer Lokesh',     'officer10@rapidroute.ai', '+91-9200000010', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TiGniIMZlzSWfbNYyaUpXVWAFkBG', 'officer',      'active'),
-('00000000-0000-0000-0000-000000000021', 'Officer Deepak',     'officer11@rapidroute.ai', '+91-9200000011', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TiGniIMZlzSWfbNYyaUpXVWAFkBG', 'officer',      'active'),
-('00000000-0000-0000-0000-000000000022', 'Officer Kiran',      'officer12@rapidroute.ai', '+91-9200000012', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TiGniIMZlzSWfbNYyaUpXVWAFkBG', 'officer',      'active'),
-('00000000-0000-0000-0000-000000000023', 'Officer Chandra',    'officer13@rapidroute.ai', '+91-9200000013', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TiGniIMZlzSWfbNYyaUpXVWAFkBG', 'officer',      'active'),
-('00000000-0000-0000-0000-000000000024', 'Officer Shiva',      'officer14@rapidroute.ai', '+91-9200000014', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TiGniIMZlzSWfbNYyaUpXVWAFkBG', 'officer',      'active'),
-('00000000-0000-0000-0000-000000000025', 'Officer Mahesh',     'officer15@rapidroute.ai', '+91-9200000015', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TiGniIMZlzSWfbNYyaUpXVWAFkBG', 'officer',      'active');
+('00000000-0000-0000-0000-000000000011', 'Officer Prasad',     'officer1@rapidroute.ai',  '+91-9200000001', '$2a$12$JRXlq3YHKYM/xPTtwZMEgOVEI1vn392yu2e60il88ag7scXvuMSQS', 'officer',      'active'),
+('00000000-0000-0000-0000-000000000012', 'Officer Srinivas',   'officer2@rapidroute.ai',  '+91-9200000002', '$2a$12$JRXlq3YHKYM/xPTtwZMEgOVEI1vn392yu2e60il88ag7scXvuMSQS', 'officer',      'active'),
+('00000000-0000-0000-0000-000000000013', 'Officer Ramesh',     'officer3@rapidroute.ai',  '+91-9200000003', '$2a$12$JRXlq3YHKYM/xPTtwZMEgOVEI1vn392yu2e60il88ag7scXvuMSQS', 'officer',      'active'),
+('00000000-0000-0000-0000-000000000014', 'Officer Naresh',     'officer4@rapidroute.ai',  '+91-9200000004', '$2a$12$JRXlq3YHKYM/xPTtwZMEgOVEI1vn392yu2e60il88ag7scXvuMSQS', 'officer',      'active'),
+('00000000-0000-0000-0000-000000000015', 'Officer Vijay',      'officer5@rapidroute.ai',  '+91-9200000005', '$2a$12$JRXlq3YHKYM/xPTtwZMEgOVEI1vn392yu2e60il88ag7scXvuMSQS', 'officer',      'active'),
+('00000000-0000-0000-0000-000000000016', 'Officer Ajay',       'officer6@rapidroute.ai',  '+91-9200000006', '$2a$12$JRXlq3YHKYM/xPTtwZMEgOVEI1vn392yu2e60il88ag7scXvuMSQS', 'officer',      'active'),
+('00000000-0000-0000-0000-000000000017', 'Officer Raj',        'officer7@rapidroute.ai',  '+91-9200000007', '$2a$12$JRXlq3YHKYM/xPTtwZMEgOVEI1vn392yu2e60il88ag7scXvuMSQS', 'officer',      'active'),
+('00000000-0000-0000-0000-000000000018', 'Officer Sunil',      'officer8@rapidroute.ai',  '+91-9200000008', '$2a$12$JRXlq3YHKYM/xPTtwZMEgOVEI1vn392yu2e60il88ag7scXvuMSQS', 'officer',      'active'),
+('00000000-0000-0000-0000-000000000019', 'Officer Pavan',      'officer9@rapidroute.ai',  '+91-9200000009', '$2a$12$JRXlq3YHKYM/xPTtwZMEgOVEI1vn392yu2e60il88ag7scXvuMSQS', 'officer',      'active'),
+('00000000-0000-0000-0000-000000000020', 'Officer Lokesh',     'officer10@rapidroute.ai', '+91-9200000010', '$2a$12$JRXlq3YHKYM/xPTtwZMEgOVEI1vn392yu2e60il88ag7scXvuMSQS', 'officer',      'active'),
+('00000000-0000-0000-0000-000000000021', 'Officer Deepak',     'officer11@rapidroute.ai', '+91-9200000011', '$2a$12$JRXlq3YHKYM/xPTtwZMEgOVEI1vn392yu2e60il88ag7scXvuMSQS', 'officer',      'active'),
+('00000000-0000-0000-0000-000000000022', 'Officer Kiran',      'officer12@rapidroute.ai', '+91-9200000012', '$2a$12$JRXlq3YHKYM/xPTtwZMEgOVEI1vn392yu2e60il88ag7scXvuMSQS', 'officer',      'active'),
+('00000000-0000-0000-0000-000000000023', 'Officer Chandra',    'officer13@rapidroute.ai', '+91-9200000013', '$2a$12$JRXlq3YHKYM/xPTtwZMEgOVEI1vn392yu2e60il88ag7scXvuMSQS', 'officer',      'active'),
+('00000000-0000-0000-0000-000000000024', 'Officer Shiva',      'officer14@rapidroute.ai', '+91-9200000014', '$2a$12$JRXlq3YHKYM/xPTtwZMEgOVEI1vn392yu2e60il88ag7scXvuMSQS', 'officer',      'active'),
+('00000000-0000-0000-0000-000000000025', 'Officer Mahesh',     'officer15@rapidroute.ai', '+91-9200000015', '$2a$12$JRXlq3YHKYM/xPTtwZMEgOVEI1vn392yu2e60il88ag7scXvuMSQS', 'officer',      'active');
 
 -- ── HOSPITALS (Hyderabad area) ────────────────────────────
 INSERT INTO hospitals (id, name, address, latitude, longitude, contact_phone, contact_email, emergency_status, total_beds, available_beds, user_id) VALUES
