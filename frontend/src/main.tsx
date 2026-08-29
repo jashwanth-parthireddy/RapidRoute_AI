@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import App from './App'
 import './index.css'
+import 'leaflet/dist/leaflet.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
@@ -20,7 +21,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             fontSize: '14px',
           },
           success: { iconTheme: { primary: '#22c55e', secondary: '#141424' } },
-          error:   { iconTheme: { primary: '#ef4444', secondary: '#141424' } },
+          error: { iconTheme: { primary: '#ef4444', secondary: '#141424' } },
         }}
       />
     </BrowserRouter>
