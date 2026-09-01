@@ -105,10 +105,10 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Disclaimer */}
-        <p className="text-center text-xs mt-6 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-          ⚠️ This prototype simulates emergency coordination. It does not control real traffic signals or government infrastructure.
-        </p>
+        {/* Project Description */}
+<p className="text-center text-xs mt-6 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+  🚑 RapidRoute provides emergency ambulance routing and coordination using real-time location and traffic information.
+</p>
       </div>
     </div>
   )
