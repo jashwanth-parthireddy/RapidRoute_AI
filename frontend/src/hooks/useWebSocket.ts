@@ -3,7 +3,7 @@ import { useAuthStore } from '../store/authStore'
 import { useEmergencyStore } from '../store/emergencyStore'
 import toast from 'react-hot-toast'
 
-const WS_URL = `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/ws`
+const WS_URL = `${import.meta.env.VITE_API_URL.replace(/^http/, 'ws')}/ws`
 
 export function useWebSocket() {
   const wsRef       = useRef<WebSocket | null>(null)
