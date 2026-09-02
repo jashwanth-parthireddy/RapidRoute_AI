@@ -9,21 +9,21 @@ import EmergencyMap from '../../components/map/EmergencyMap'
 type DriverView = 'home' | 'select-hospital' | 'active'
 
 export default function DriverHome() {
-  const { user, logout }        = useAuthStore()
-  const [view,        setView]  = useState<DriverView>('home')
-  const [ambulance,   setAmb]   = useState<any>(null)
-  const [hospitals,   setHosps] = useState<any[]>([])
-  const [selectedHosp,setSelHosp] = useState<any>(null)
-  const [emergency,   setEmerg] = useState<any>(null)
-  const [route,       setRoute] = useState<any>(null)
-  const [loading,     setLoad]  = useState(false)
-  const [endConfirm,  setEndC]  = useState(false)
+  const { user, logout } = useAuthStore()
+  const [view, setView] = useState<DriverView>('home')
+  const [ambulance, setAmb] = useState<any>(null)
+  const [hospitals, setHosps] = useState<any[]>([])
+  const [selectedHosp, setSelHosp] = useState<any>(null)
+  const [emergency, setEmerg] = useState<any>(null)
+  const [route, setRoute] = useState<any>(null)
+  const [loading, setLoad] = useState(false)
+  const [endConfirm, setEndC] = useState(false)
 
   useWebSocket()
 
   useEffect(() => {
-    api.get('/ambulances/my').then(r => setAmb(r.data.data)).catch(() => {})
-    api.get('/hospitals').then(r => setHosps(r.data.data)).catch(() => {})
+    api.get('/ambulances/my').then(r => setAmb(r.data.data)).catch(() => { })
+    api.get('/hospitals').then(r => setHosps(r.data.data)).catch(() => { })
   }, [])
 
   async function createEmergency() {
@@ -32,8 +32,8 @@ export default function DriverHome() {
     try {
       const { data } = await api.post('/emergencies', {
         ambulance_id: ambulance.id,
-        hospital_id:  selectedHosp.id,
-        priority:     'high',
+        hospital_id: selectedHosp.id,
+        priority: 'high',
       })
       const created = data.data
       // Activate immediately
@@ -69,7 +69,30 @@ export default function DriverHome() {
     }
   }
 
-  const routePoints = route?.waypoints ? JSON.parse(typeof route.waypoints === 'string' ? route.waypoints : JSON.stringify(route.waypoints)) : []
+  const routePoints: Array<{ lat: number; lng: number }> = (() => {
+    if (!route?.waypoints) return []
+
+    try {
+      const waypoints =
+        typeof route.waypoints === 'string'
+          ? JSON.parse(route.waypoints)
+          : route.waypoints
+
+      if (!Array.isArray(waypoints)) return []
+
+      return waypoints
+        .filter((p: any) =>
+          p &&
+          typeof p.lat === 'number' &&
+          typeof p.lng === 'number' &&
+          Number.isFinite(p.lat) &&
+          Number.isFinite(p.lng)
+        )
+        .map((p: any) => ({ lat: p.lat, lng: p.lng }))
+    } catch {
+      return []
+    }
+  })()
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg-primary)' }}>
@@ -190,9 +213,9 @@ export default function DriverHome() {
           {/* Info panel */}
           <div className="p-5 space-y-4" style={{ background: 'var(--bg-secondary)', borderTop: '1px solid var(--border)' }}>
             <div className="grid grid-cols-3 gap-3">
-              <Metric icon={<Clock size={16} />}      label="ETA"      value={`${emergency.eta_minutes?.toFixed(0) || '—'} min`} color="#00d4ff" />
+              <Metric icon={<Clock size={16} />} label="ETA" value={`${emergency.eta_minutes?.toFixed(0) || '—'} min`} color="#00d4ff" />
               <Metric icon={<Navigation size={16} />} label="Distance" value={`${emergency.distance_remaining?.toFixed(1) || '—'} km`} color="#00ff88" />
-              <Metric icon={<Zap size={16} />}        label="Route"    value={route ? 'AI Optimized' : 'Calculating…'} color="#ffb800" />
+              <Metric icon={<Zap size={16} />} label="Route" value={route ? 'AI Optimized' : 'Calculating…'} color="#ffb800" />
             </div>
 
             {route?.ai_reasoning && (

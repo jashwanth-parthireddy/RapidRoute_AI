@@ -3,18 +3,18 @@ import { useAuthStore } from '../store/authStore'
 import { useEmergencyStore } from '../store/emergencyStore'
 import toast from 'react-hot-toast'
 
-const WS_URL = `${import.meta.env.VITE_API_URL.replace(/^http/, 'ws')}/ws`
+const WS_URL = 'https://rapidroute-ai.onrender.com'.replace(/^http/, 'ws') + '/ws'
 
 export function useWebSocket() {
-  const wsRef       = useRef<WebSocket | null>(null)
-  const reconnectRef= useRef<ReturnType<typeof setTimeout>>()
-  const token       = useAuthStore((s) => s.token)
+  const wsRef = useRef<WebSocket | null>(null)
+  const reconnectRef = useRef<ReturnType<typeof setTimeout>>()
+  const token = useAuthStore((s) => s.token)
   const { addEmergency, updateEmergency, removeEmergency, addAlert, updateAlert } = useEmergencyStore()
 
   const connect = useCallback(() => {
     if (wsRef.current?.readyState === WebSocket.OPEN) return
     const url = token ? `${WS_URL}?token=${token}` : WS_URL
-    const ws  = new WebSocket(url)
+    const ws = new WebSocket(url)
     wsRef.current = ws
 
     ws.onopen = () => { console.log('[WS] Connected') }
