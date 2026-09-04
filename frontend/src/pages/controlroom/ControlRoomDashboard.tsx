@@ -12,13 +12,14 @@ import { LogOut, Radio, Activity, Cpu, Map as MapIcon, AlertTriangle } from 'luc
 type Tab = 'map' | 'alerts' | 'ai' | 'simulation'
 
 export default function ControlRoomDashboard() {
-  const { user, logout }     = useAuthStore()
+  const { user, logout } = useAuthStore()
   const { activeEmergencies, activeAlerts } = useEmergencyStore()
-  const [tab, setTab]        = useState<Tab>('map')
+  const [tab, setTab] = useState<Tab>('map')
   const [junctions, setJunctions] = useState<any[]>([])
-  const [hospitals,  setHospitals] = useState<any[]>([])
-  const [stats,      setStats]     = useState({ active: 0, enRoute: 0, highPriJunctions: 0, hospitals: 0, avgEta: 0, timeSaved: 0 })
-  const [loading,    setLoading]   = useState(true)
+  const [hospitals, setHospitals] = useState<any[]>([])
+  const [controlRoomRoute, setControlRoomRoute] = useState<Array<{ lat: number; lng: number }>>([])
+  const [stats, setStats] = useState({ active: 0, enRoute: 0, highPriJunctions: 0, hospitals: 0, avgEta: 0, timeSaved: 0 })
+  const [loading, setLoading] = useState(true)
 
   useWebSocket() // connect and listen for events
 
@@ -32,19 +33,56 @@ export default function ControlRoomDashboard() {
           api.get('/hospitals'),
           api.get('/analytics/summary'),
         ])
-        if (emergRes.status === 'fulfilled') useEmergencyStore.getState().setActiveEmergencies(emergRes.value.data.data)
-        if (alertRes.status  === 'fulfilled') useEmergencyStore.getState().setActiveAlerts(alertRes.value.data.data)
-        if (juncRes.status   === 'fulfilled') setJunctions(juncRes.value.data.data)
-        if (hospRes.status   === 'fulfilled') setHospitals(hospRes.value.data.data)
-        if (sumRes.status    === 'fulfilled') {
+        if (emergRes.status === 'fulfilled') {
+          const emergencies = emergRes.value.data.data
+
+          useEmergencyStore.getState().setActiveEmergencies(emergencies)
+
+          if (emergencies.length > 0) {
+            try {
+              const routeRes = await api.get(
+                `/routes/recommended?emergency_id=${emergencies[0].id}`
+              )
+
+              const waypoints = routeRes.data.data?.waypoints
+
+              const parsedWaypoints =
+                typeof waypoints === 'string'
+                  ? JSON.parse(waypoints)
+                  : waypoints
+
+              if (Array.isArray(parsedWaypoints)) {
+                setControlRoomRoute(
+                  parsedWaypoints.filter(
+                    (p: any) =>
+                      p &&
+                      Number.isFinite(p.lat) &&
+                      Number.isFinite(p.lng)
+                  )
+                )
+              } else {
+                setControlRoomRoute([])
+              }
+            } catch (error) {
+              console.error('Failed to load emergency route:', error)
+              setControlRoomRoute([])
+            }
+          } else {
+            setControlRoomRoute([])
+          }
+        }
+        if (alertRes.status === 'fulfilled') useEmergencyStore.getState().setActiveAlerts(alertRes.value.data.data)
+        if (juncRes.status === 'fulfilled') setJunctions(juncRes.value.data.data)
+        if (hospRes.status === 'fulfilled') setHospitals(hospRes.value.data.data)
+        if (sumRes.status === 'fulfilled') {
           const s = sumRes.value.data.data.stats
           setStats({
-            active:          parseInt(s.active_emergencies)   || 0,
-            enRoute:         parseInt(s.active_emergencies)   || 0,
+            active: parseInt(s.active_emergencies) || 0,
+            enRoute: parseInt(s.active_emergencies) || 0,
             highPriJunctions: junctions.filter(j => j.traffic_level === 'critical' || j.traffic_level === 'high').length,
-            hospitals:       parseInt(s.total_hospitals) || 0,
-            avgEta:          activeEmergencies.reduce((a, e) => a + (e.eta_minutes || 0), 0) / Math.max(1, activeEmergencies.length),
-            timeSaved:       parseFloat(s.avg_time_saved) || 0,
+            hospitals: parseInt(s.total_hospitals) || 0,
+            avgEta: activeEmergencies.reduce((a, e) => a + (e.eta_minutes || 0), 0) / Math.max(1, activeEmergencies.length),
+            timeSaved: parseFloat(s.avg_time_saved) || 0,
           })
         }
       } finally {
@@ -58,15 +96,15 @@ export default function ControlRoomDashboard() {
   useEffect(() => {
     setStats(prev => ({
       ...prev,
-      active:  activeEmergencies.length,
+      active: activeEmergencies.length,
       enRoute: activeEmergencies.length,
-      avgEta:  activeEmergencies.reduce((a, e) => a + (e.eta_minutes || 0), 0) / Math.max(1, activeEmergencies.length),
+      avgEta: activeEmergencies.reduce((a, e) => a + (e.eta_minutes || 0), 0) / Math.max(1, activeEmergencies.length),
     }))
   }, [activeEmergencies])
 
   const mapAmbulances = activeEmergencies.map(e => ({
     id: e.ambulance_id,
-    latitude:  e.current_latitude  || 17.437,
+    latitude: e.current_latitude || 17.437,
     longitude: e.current_longitude || 78.448,
     label: e.ambulance_number || 'AMB',
     speed: e.current_speed,
@@ -78,11 +116,11 @@ export default function ControlRoomDashboard() {
 
   const highPriAlerts = activeAlerts.filter(a => a.priority === 'high' || a.priority === 'critical')
 
-  const tabs: Array<{id: Tab; label: string; icon: React.ReactNode; badge?: number}> = [
-    { id: 'map',        label: 'Live Map',      icon: <MapIcon size={15} /> },
-    { id: 'alerts',     label: 'Alerts',        icon: <AlertTriangle size={15} />, badge: highPriAlerts.length || undefined },
-    { id: 'ai',         label: 'AI Insights',   icon: <Cpu size={15} /> },
-    { id: 'simulation', label: 'Simulation',    icon: <Activity size={15} /> },
+  const tabs: Array<{ id: Tab; label: string; icon: React.ReactNode; badge?: number }> = [
+    { id: 'map', label: 'Live Map', icon: <MapIcon size={15} /> },
+    { id: 'alerts', label: 'Alerts', icon: <AlertTriangle size={15} />, badge: highPriAlerts.length || undefined },
+    { id: 'ai', label: 'AI Insights', icon: <Cpu size={15} /> },
+    { id: 'simulation', label: 'Simulation', icon: <Activity size={15} /> },
   ]
 
   return (
@@ -143,7 +181,14 @@ export default function ControlRoomDashboard() {
             <EmergencyMap
               ambulances={mapAmbulances}
               hospitals={mapHospitals}
-              junctions={junctions.map(j => ({ id: j.id, latitude: j.latitude, longitude: j.longitude, name: j.name, traffic_level: j.traffic_level }))}
+              junctions={junctions.map(j => ({
+                id: j.id,
+                latitude: j.latitude,
+                longitude: j.longitude,
+                name: j.name,
+                traffic_level: j.traffic_level
+              }))}
+              route={controlRoomRoute}
               height="100%"
             />
           )}
