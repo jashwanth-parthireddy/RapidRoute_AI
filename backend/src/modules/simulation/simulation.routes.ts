@@ -116,15 +116,18 @@ router.post('/tick', async (req, res: Response, next: NextFunction) => {
     if (!emergency) throw createError('Active emergency not found', 404);
 
     const route = SIM_ROUTES[emergency_id];
+
     if (!route || route.length < 2) {
-      // Auto-complete
       await query(`UPDATE emergencies SET status='completed', end_time=NOW() WHERE id=$1`, [emergency_id]);
       await query(`UPDATE ambulances SET status='available' WHERE id=$1`, [emergency.amb_id]);
       broadcastEvent('AMBULANCE_ARRIVED', { emergencyId: emergency_id });
       return success(res, { completed: true });
     }
 
-    const next = route.shift()!;
+    // The first route point is the current ambulance position.
+    // Remove it, then move to the next point.
+    route.shift();
+    const next = route[0];
     const distKm = haversine(next.lat, next.lng, emergency.h_lat, emergency.h_lng);
     const etaMin = (distKm / 35) * 60;
     const speed = 35 + Math.random() * 15;
