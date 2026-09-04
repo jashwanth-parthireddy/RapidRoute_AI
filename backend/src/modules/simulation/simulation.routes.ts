@@ -33,9 +33,13 @@ router.post('/start', async (_req, res: Response, next: NextFunction) => {
     if (!ambulance) throw createError('No ambulances available for simulation', 400);
 
     // Pick random hospital
-    const hospitalSeed = HOSPITALS[Math.floor(Math.random() * HOSPITALS.length)];
-    const hospital = await queryOne<any>('SELECT * FROM hospitals WHERE id=$1', [hospitalSeed.id]);
-    if (!hospital) throw createError('Hospital data missing — run seed', 500);
+    const hospital = await queryOne<any>(
+      'SELECT * FROM hospitals ORDER BY created_at ASC LIMIT 1'
+    );
+
+    if (!hospital) {
+      throw createError('No hospitals available in database', 500);
+    }
 
     const code = generateEmergencyCode();
     const oLat = ambulance.current_latitude || 17.4373;
