@@ -6,8 +6,8 @@ import L from 'leaflet'
 delete (L.Icon.Default.prototype as any)._getIconUrl
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  iconUrl:       'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl:     'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 })
 
 // Custom ambulance icon (pulsing red)
@@ -41,42 +41,81 @@ function junctionIcon(priority: string) {
   })
 }
 
-function FlyToAmbulance({ lat, lng }: { lat?: number; lng?: number }) {
+function FitEmergencyRoute({
+  route,
+  ambulances,
+  hospitals,
+}: {
+  route: Array<{ lat: number; lng: number }>
+  ambulances: Array<{ latitude: number; longitude: number }>
+  hospitals: Array<{ latitude: number; longitude: number }>
+}) {
   const map = useMap()
-  const first = useRef(true)
+
   useEffect(() => {
-    if (lat && lng && first.current) {
-      map.setView([lat, lng], 14, { animate: true })
-      first.current = false
+    const points: [number, number][] = []
+
+    route.forEach((p) => {
+      if (Number.isFinite(p.lat) && Number.isFinite(p.lng)) {
+        points.push([p.lat, p.lng])
+      }
+    })
+
+    ambulances.forEach((a) => {
+      if (
+        Number.isFinite(a.latitude) &&
+        Number.isFinite(a.longitude)
+      ) {
+        points.push([a.latitude, a.longitude])
+      }
+    })
+
+    hospitals.forEach((h) => {
+      if (
+        Number.isFinite(h.latitude) &&
+        Number.isFinite(h.longitude)
+      ) {
+        points.push([h.latitude, h.longitude])
+      }
+    })
+
+    if (points.length >= 2) {
+      const bounds = L.latLngBounds(points)
+
+      map.fitBounds(bounds, {
+        padding: [50, 50],
+        maxZoom: 14,
+        animate: true,
+      })
     }
-  }, [lat, lng])
+  }, [route, ambulances, hospitals, map])
+
   return null
 }
-
 export interface MapProps {
   ambulances?: Array<{ id: string; latitude: number; longitude: number; label: string; speed?: number }>
-  hospitals?:  Array<{ id: string; latitude: number; longitude: number; name: string }>
-  junctions?:  Array<{ id: string; latitude: number; longitude: number; name: string; priority?: string; traffic_level?: string }>
-  route?:      Array<{ lat: number; lng: number }>
-  altRoute?:   Array<{ lat: number; lng: number }>
-  centerLat?:  number
-  centerLng?:  number
-  height?:     string
+  hospitals?: Array<{ id: string; latitude: number; longitude: number; name: string }>
+  junctions?: Array<{ id: string; latitude: number; longitude: number; name: string; priority?: string; traffic_level?: string }>
+  route?: Array<{ lat: number; lng: number }>
+  altRoute?: Array<{ lat: number; lng: number }>
+  centerLat?: number
+  centerLng?: number
+  height?: string
 }
 
 export default function EmergencyMap({
   ambulances = [],
-  hospitals  = [],
-  junctions  = [],
-  route      = [],
-  altRoute   = [],
-  centerLat  = 17.42,
-  centerLng  = 78.45,
-  height     = '100%',
+  hospitals = [],
+  junctions = [],
+  route = [],
+  altRoute = [],
+  centerLat = 17.42,
+  centerLng = 78.45,
+  height = '100%',
 }: MapProps) {
-  const routePoints    = route.map(p => [p.lat, p.lng] as [number, number])
+  const routePoints = route.map(p => [p.lat, p.lng] as [number, number])
   const altRoutePoints = altRoute.map(p => [p.lat, p.lng] as [number, number])
-  const primaryAmb     = ambulances[0]
+
 
   return (
     <MapContainer
@@ -138,8 +177,12 @@ export default function EmergencyMap({
         </Marker>
       ))}
 
-      {/* Auto-fly to ambulance */}
-      {primaryAmb && <FlyToAmbulance lat={primaryAmb.latitude} lng={primaryAmb.longitude} />}
+      {/* Auto-fit ambulance, route and hospital */}
+      <FitEmergencyRoute
+        route={route}
+        ambulances={ambulances}
+        hospitals={hospitals}
+      />
     </MapContainer>
   )
 }
