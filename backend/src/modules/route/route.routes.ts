@@ -25,8 +25,8 @@ function interpolateWaypoints(
     const jitter = (Math.random() - 0.5) * 0.002;
     pts.push({ lat: oLat + (dLat - oLat) * t + jitter, lng: oLng + (dLng - oLng) * t + jitter });
   }
-  pts[0]            = { lat: oLat, lng: oLng };
-  pts[pts.length-1] = { lat: dLat, lng: dLng };
+  pts[0] = { lat: oLat, lng: oLng };
+  pts[pts.length - 1] = { lat: dLat, lng: dLng };
   return pts;
 }
 
@@ -45,12 +45,56 @@ router.get('/recommended', async (req: AuthRequest, res: Response, next: NextFun
       WHERE e.id = $1`, [emergency_id]);
     if (!emergency) throw createError('Emergency not found', 404);
 
-    // Return existing active route if available
+    // Return existing active route only if it still matches
+    // the ambulance's current location and hospital destination.
     const existing = await queryOne<any>(
       `SELECT * FROM routes WHERE emergency_id=$1 AND is_active=TRUE LIMIT 1`,
       [emergency_id]
     );
-    if (existing) return success(res, existing);
+
+    const currentOLat = Number(emergency.current_latitude ?? emergency.a_lat);
+    const currentOLng = Number(emergency.current_longitude ?? emergency.a_lng);
+    const currentDLat = Number(emergency.h_lat);
+    const currentDLng = Number(emergency.h_lng);
+
+    if (existing) {
+      try {
+        const existingWaypoints =
+          typeof existing.waypoints === 'string'
+            ? JSON.parse(existing.waypoints)
+            : existing.waypoints;
+
+        const first = Array.isArray(existingWaypoints)
+          ? existingWaypoints[0]
+          : null;
+
+        const last = Array.isArray(existingWaypoints)
+          ? existingWaypoints[existingWaypoints.length - 1]
+          : null;
+
+        const startMatches =
+          first &&
+          Math.abs(Number(first.lat) - currentOLat) < 0.0001 &&
+          Math.abs(Number(first.lng) - currentOLng) < 0.0001;
+
+        const destinationMatches =
+          last &&
+          Math.abs(Number(last.lat) - currentDLat) < 0.0001 &&
+          Math.abs(Number(last.lng) - currentDLng) < 0.0001;
+
+        if (startMatches && destinationMatches) {
+          return success(res, existing);
+        }
+      } catch {
+        // Invalid/stale route — regenerate it below.
+      }
+
+      // Old route does not match the current ambulance position.
+      await query(
+        `UPDATE routes SET is_active=FALSE WHERE emergency_id=$1`,
+        [emergency_id]
+      );
+    }
 
     // Build two route options
     const oLat = emergency.current_latitude || emergency.a_lat;
@@ -59,24 +103,24 @@ router.get('/recommended', async (req: AuthRequest, res: Response, next: NextFun
     const dLng = emergency.h_lng;
     const distKm = haversine(oLat, oLng, dLat, dLng);
 
-    const normalWpts  = interpolateWaypoints(oLat, oLng, dLat, dLng, 10);
-    const altWpts     = interpolateWaypoints(oLat, oLng, dLat, dLng, 12);
+    const normalWpts = interpolateWaypoints(oLat, oLng, dLat, dLng, 10);
+    const altWpts = interpolateWaypoints(oLat, oLng, dLat, dLng, 12);
 
-    const normalTime  = (distKm / 30) * 60;        // minutes at 30 km/h
-    const altDistKm   = distKm * 1.13;              // slightly longer road
-    const altTime     = (altDistKm / 40) * 60;     // faster due to less traffic
+    const normalTime = (distKm / 30) * 60;        // minutes at 30 km/h
+    const altDistKm = distKm * 1.13;              // slightly longer road
+    const altTime = (altDistKm / 40) * 60;     // faster due to less traffic
 
     // Ask AI to score
     let aiReasoning = 'Route B recommended: predicted lower congestion and fewer high-delay junctions.';
     let aiScore = 85;
     try {
       const aiRes = await callAIService('/route/score', {
-        normal:  { distance: distKm,    estimated_time: normalTime },
-        alt:     { distance: altDistKm, estimated_time: altTime    },
+        normal: { distance: distKm, estimated_time: normalTime },
+        alt: { distance: altDistKm, estimated_time: altTime },
         emergency_id,
       });
       if (aiRes?.reasoning) aiReasoning = aiRes.reasoning;
-      if (aiRes?.score)     aiScore     = aiRes.score;
+      if (aiRes?.score) aiScore = aiRes.score;
     } catch { /* use defaults */ }
 
     // Deactivate old routes
@@ -123,9 +167,9 @@ router.post('/recalculate', async (req: AuthRequest, res: Response, next: NextFu
 
     if (!oLat || !oLng) throw createError('Ambulance location not yet available', 400);
 
-    const distKm  = haversine(oLat, oLng, dLat, dLng);
+    const distKm = haversine(oLat, oLng, dLat, dLng);
     const newTime = (distKm / 38) * 60;
-    const waypts  = interpolateWaypoints(oLat, oLng, dLat, dLng, 12);
+    const waypts = interpolateWaypoints(oLat, oLng, dLat, dLng, 12);
 
     await query(`UPDATE routes SET is_active=FALSE WHERE emergency_id=$1`, [emergency_id]);
 
@@ -138,7 +182,7 @@ router.post('/recalculate', async (req: AuthRequest, res: Response, next: NextFu
       [newTime, distKm, emergency_id]);
 
     broadcastEvent('ROUTE_CHANGED', { emergencyId: emergency_id, route, reason });
-    broadcastEvent('ETA_UPDATED',   { emergencyId: emergency_id, etaMinutes: newTime, distanceKm: distKm });
+    broadcastEvent('ETA_UPDATED', { emergencyId: emergency_id, etaMinutes: newTime, distanceKm: distKm });
 
     logger.info('Route recalculated', { emergencyId: emergency_id, reason });
     return success(res, route, 'Route recalculated');
