@@ -12,12 +12,14 @@ router.use(authenticate, authorize('admin', 'control_room'));
 
 // Hyderabad area — realistic simulation hospitals
 const HOSPITALS = [
-  { id: '10000000-0000-0000-0000-000000000001', lat: 17.4399, lng: 78.4983 },
-  { id: '10000000-0000-0000-0000-000000000002', lat: 17.4280, lng: 78.4551 },
-  { id: '10000000-0000-0000-0000-000000000003', lat: 17.4239, lng: 78.4090 },
+  {
+    id: '18a29da7-d51a-474a-a123-963ab2cad4e8',
+    lat: 17.3850,
+    lng: 78.4867,
+  },
 ];
 
-const SIM_ROUTES: Record<string, Array<{lat: number; lng: number; progress: number}>> = {};
+const SIM_ROUTES: Record<string, Array<{ lat: number; lng: number; progress: number }>> = {};
 
 // POST /api/simulation/start
 router.post('/start', async (_req, res: Response, next: NextFunction) => {
@@ -36,7 +38,7 @@ router.post('/start', async (_req, res: Response, next: NextFunction) => {
     if (!hospital) throw createError('Hospital data missing — run seed', 500);
 
     const code = generateEmergencyCode();
-    const oLat = ambulance.current_latitude  || 17.4373;
+    const oLat = ambulance.current_latitude || 17.4373;
     const oLng = ambulance.current_longitude || 78.4483;
 
     const [emergency] = await query<any>(`
@@ -49,20 +51,20 @@ router.post('/start', async (_req, res: Response, next: NextFunction) => {
 
     await query('UPDATE ambulances SET status=$1 WHERE id=$2', ['emergency', ambulance.id]);
 
-    const distKm   = haversine(oLat, oLng, hospital.latitude, hospital.longitude);
-    const etaMin   = (distKm / 35) * 60;
+    const distKm = haversine(oLat, oLng, hospital.latitude, hospital.longitude);
+    const etaMin = (distKm / 35) * 60;
 
     await query('UPDATE emergencies SET eta_minutes=$1, distance_remaining=$2 WHERE id=$3',
       [etaMin, distKm, emergency.id]);
 
     // Build interpolated route
     const steps = 30;
-    const route: Array<{lat:number; lng:number; progress:number}> = [];
+    const route: Array<{ lat: number; lng: number; progress: number }> = [];
     for (let i = 0; i <= steps; i++) {
       const t = i / steps;
       route.push({
-        lat:      oLat + (hospital.latitude  - oLat) * t,
-        lng:      oLng + (hospital.longitude - oLng) * t,
+        lat: oLat + (hospital.latitude - oLat) * t,
+        lng: oLng + (hospital.longitude - oLng) * t,
         progress: t,
       });
     }
@@ -79,7 +81,7 @@ router.post('/start', async (_req, res: Response, next: NextFunction) => {
     for (let i = 0; i < Math.min(3, junctions.length); i++) {
       const j = junctions[i];
       const dist = haversine(oLat, oLng, j.latitude, j.longitude);
-      const eta  = (dist / 35) * 60;
+      const eta = (dist / 35) * 60;
       await query(`
         INSERT INTO alerts (emergency_id, junction_id, officer_id, priority, status, eta_minutes, message, sent_at)
         VALUES ($1,$2,$3,'high','sent',$4,$5,NOW())
@@ -119,9 +121,9 @@ router.post('/tick', async (req, res: Response, next: NextFunction) => {
     }
 
     const next = route.shift()!;
-    const distKm  = haversine(next.lat, next.lng, emergency.h_lat, emergency.h_lng);
-    const etaMin  = (distKm / 35) * 60;
-    const speed   = 35 + Math.random() * 15;
+    const distKm = haversine(next.lat, next.lng, emergency.h_lat, emergency.h_lng);
+    const etaMin = (distKm / 35) * 60;
+    const speed = 35 + Math.random() * 15;
 
     await query(
       `UPDATE ambulances SET current_latitude=$1, current_longitude=$2, current_speed=$3, last_location_at=NOW() WHERE id=$4`,
@@ -210,7 +212,7 @@ router.post('/complete', async (req, res: Response, next: NextFunction) => {
       VALUES ($1,$2,$3,$4,$5,$6,$7,1,NOW())
       ON CONFLICT (emergency_id) DO NOTHING
     `, [emergency_id, normalEta, emergency.eta_minutes, actualMin, timeSaved,
-        parseInt(alerted[0]?.cnt || '0'), parseInt(cleared[0]?.cnt || '0')]);
+      parseInt(alerted[0]?.cnt || '0'), parseInt(cleared[0]?.cnt || '0')]);
 
     delete SIM_ROUTES[emergency_id];
 
